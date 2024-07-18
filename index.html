@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0"
+      crossorigin="anonymous"
+    />
+
+    <title>Calender Co-Pilot</title>
+  </head>
+
+  <body>
+    <div id="not-loggedin" class="d-block">
+      <h3 class="my-3">Welcome to Calender Co-Pilot</h3>
+      <p class="my-3">Please Signup</p>
+      <form id="create-tutor">
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            class="form-control"
+            name="username"
+            placeholder="username"
+            required
+          />
+          <button class="btn btn-primary" type="submit">Signup</button>
+        </div>
+      </form>
+    </div>
+    <div id="loggedin" class="d-block">
+      <div class="container">
+        <h3 class="my-3">Simplify Adding Availability</h3>
+        <h5 class="my-3" id="username"></h5>
+        <form id="form">
+          <div class="input-group mb-3">
+            <input
+              id="availability-input"
+              type="text"
+              class="form-control"
+              placeholder="I am available on Monday from 9pm to 11pm, ...other availability"
+              required
+            />
+            <button class="btn btn-primary" type="submit" id="button-send">
+              Send
+            </button>
+          </div>
+        </form>
+        <table class="table table-striped table-bordered" id="availability">
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col">Day</th>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button class="btn btn-primary d-none" type="submit" id="button-save">
+          Save
+        </button>
+        <h3 class="my-3">Current Availability</h3>
+        <table
+          class="table table-striped table-bordered"
+          id="current-availability"
+        >
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col">Day</th>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let availability = [];
+      const fetchCurrentAvailability = async () => {
+        try {
+          const tutorId = new URLSearchParams(window.location.search).get("id");
+          const response = await fetch(`http://localhost:8000/get/${tutorId}`);
+          const result = await response.json();
+          addAvailability(result["availability"], "current-availability");
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      };
+
+      document
+        .getElementById("create-tutor")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const username = document.querySelector(
+            "input[name='username']"
+          ).value;
+          const body = JSON.stringify({ username });
+          try {
+            const response = await fetch("http://localhost:8000/create-tutor", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: body,
+            });
+
+            const result = await response.json();
+            console.log(result);
+
+            if (result.error) {
+              alert("Error: " + result.error);
+            } else {
+              window.location.href = `http://localhost:8080/?id=${result.id}&username=${result.username}`;
+            }
+          } catch (error) {
+            console.error("Error:", error);
+          }
+        });
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tutorId = urlParams.get("id");
+        const username = urlParams.get("username");
+        if (tutorId && username) {
+          document.getElementById(
+            "username"
+          ).textContent = `Welcome ${username}`;
+          document.getElementById("not-loggedin").classList.add("d-none");
+          document.getElementById("loggedin").classList.remove("d-none");
+          fetchCurrentAvailability();
+        } else {
+          document.getElementById("not-loggedin").classList.remove("d-none");
+          document.getElementById("loggedin").classList.add("d-none");
+        }
+      });
+
+      document
+        .getElementById("form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const messageInput = document.getElementById("availability-input");
+          const content = messageInput.value;
+          const body = JSON.stringify({ content });
+          document.getElementById("button-send").disabled = true;
+          document.getElementById("button-send").textContent = "Loading...";
+          const tutorId = new URLSearchParams(window.location.search).get("id");
+          try {
+            const response = await fetch(`http://localhost:8000/availability`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: body,
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+              alert("Error: " + result.error);
+            } else {
+              addAvailability(result, "availability");
+              messageInput.value = "";
+              document.getElementById("button-send").disabled = false;
+              document.getElementById("button-send").textContent = "Send";
+              document.getElementById("button-save").classList.remove("d-none");
+              availability = result;
+            }
+          } catch (error) {
+            console.error("Error:", error);
+          }
+        });
+
+      document
+        .getElementById("button-save")
+        .addEventListener("click", async function (event) {
+          event.preventDefault();
+          try {
+            const tutorId = new URLSearchParams(window.location.search).get(
+              "id"
+            );
+            const response = await fetch(
+              `http://localhost:8000/save/${tutorId}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ availability}),
+              }
+            );
+
+            const result = await response.json();
+            console.log(result);
+            if (result.error) {
+              alert("Error: " + result.error);
+            } else {
+              document.getElementById("button-save").classList.add("d-none");
+              clearTable("availability");
+              clearTable("current-availability");
+              fetchCurrentAvailability();
+            }
+          } catch (error) {
+            console.error("Error:", error);
+          }
+        });
+      
+      const clearTable = (id) => {
+        const tableBody = document.querySelector(`#${id} tbody`);
+        tableBody.innerHTML = "";
+      };
+
+      const addAvailability = (lst_availability, id) => {
+        const groupedAvailability = lst_availability.reduce((acc, curr) => {
+          if (!acc[curr.day]) {
+            acc[curr.day] = [];
+          }
+          acc[curr.day].push(curr);
+          return acc;
+        }, {});
+
+        const tableBody = document.querySelector(`#${id} tbody`);
+
+        Object.keys(groupedAvailability).forEach((day) => {
+          groupedAvailability[day].forEach((item) => {
+            const row = document.createElement("tr");
+            const dayCell = document.createElement("td");
+            const fromCell = document.createElement("td");
+            const toCell = document.createElement("td");
+
+            dayCell.textContent = item.day;
+            fromCell.textContent = item.from;
+            toCell.textContent = item.to;
+
+            row.appendChild(dayCell);
+            row.appendChild(fromCell);
+            row.appendChild(toCell);
+
+            tableBody.appendChild(row);
+          });
+        });
+      };
+    </script>
+  </body>
+</html>
