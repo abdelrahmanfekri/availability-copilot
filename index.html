@@ -165,6 +165,7 @@
             if (result.error) {
               alert("Error: " + result.error);
             } else {
+              clearTable("availability");
               addAvailability(result, "availability");
               messageInput.value = "";
               document.getElementById("button-send").disabled = false;
