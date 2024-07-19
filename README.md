@@ -6,10 +6,10 @@ Welcome to Calendar Co-Pilot! This application simplifies the process of setting
 
 The objective is to help tutors easily create their availability schedules in a marketplace that connects them to students, by leveraging AI to understand natural language descriptions of availability.
 
-## Estimated Time of Development
+## Time of Development
 
-- Development: 6-8 hours
-- Testing: 4 hours
+- Development: 5 hours
+- Testing: 2 hours
 
 ## Skills Tested
 
