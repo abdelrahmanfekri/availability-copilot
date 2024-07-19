@@ -14,9 +14,9 @@ The objective is to help tutors easily create their availability schedules in a 
 ## Skills Tested
 
 - Prompt Engineering
-- NoSQL (MongoDB) Database Design
-- API Design
-- Interface Design
+- API Design FastAPI
+- NoSQL (MongoDB) Database Design (Motor)
+- Interface Design (Html, Bootstrap, JavaScript)
 
 ## Problem Statement
 
@@ -209,6 +209,6 @@ The availability schedule will be displayed in a structured table format on the 
 
 1. **Enhance Natural Language Processing**: Improve the AI prompt and fine-tune the model for better accuracy.
 2. **Error Handling**: Add more robust error handling and user feedback mechanisms.
-3. **User Interface**: Enhance the UI for better user experience, including more interactive components for calendar visualization.
+3. **User Interface**: Enhance the UI for a better user experience, including more interactive components for calendar visualization.
 4. **Testing**: Add unit and integration tests to ensure the robustness of the application.
 5. **Extending Functionality**: Enable editing and deleting of existing availability slots.
